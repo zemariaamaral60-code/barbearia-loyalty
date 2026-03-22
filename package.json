@@ -1,1 +1,16 @@
-{"name":"barbearia-loyalty","version":"1.0.0","scripts":{"start":"node backend/server.js"}}
+{
+  "name": "barbearia-loyalty",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node backend/server.js",
+    "install": "cd backend && npm install"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "qrcode": "^1.5.4",
+    "uuid": "^11.1.0"
+  }
+}
