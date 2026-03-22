@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Barbearia Fidelidade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --dark: #111111;
+    --dark2: #181818;
+    --cream: #f5f0e8;
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --gold-dim: rgba(201,168,76,0.15);
+    --red: #c0392b;
+    --green: #27ae60;
+    --gray: #666;
+    --border: rgba(201,168,76,0.12);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--black);
+    color: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* ── LOGIN ── */
+  #login-screen {
+    min-height: 100vh; display:flex; align-items:center; justify-content:center;
+    background: radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.08) 0%, transparent 70%);
+  }
+  .login-box {
+    width: 360px;
+    background: var(--dark);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px 32px;
+  }
+  .login-box .logo {
+    text-align: center; margin-bottom: 32px;
+  }
+  .login-box .logo h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px; color: var(--gold);
+  }
+  .login-box .logo p { color: var(--gray); font-size: 13px; margin-top: 4px; }
+
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display:block; font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:var(--gold); margin-bottom:8px; }
+  .form-group input {
+    width:100%; background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.2);
+    color: var(--cream); padding: 12px 14px;
+    border-radius: 8px; font-family: 'DM Sans', sans-serif;
+    font-size: 15px; outline: none; transition: border-color 0.2s;
+  }
+  .form-group input:focus { border-color: var(--gold); }
+  .btn-primary {
+    width:100%; background: var(--gold); color: var(--black);
+    border:none; padding: 14px; border-radius:8px;
+    font-family:'DM Sans',sans-serif; font-size:15px; font-weight:700;
+    cursor:pointer; transition: background 0.2s;
+  }
+  .btn-primary:hover { background: var(--gold-light); }
+  .login-error { color: var(--red); font-size:13px; text-align:center; margin-top:12px; display:none; }
+
+  /* ── APP LAYOUT ── */
+  #app-screen { display:none; min-height:100vh; }
+
+  .sidebar {
+    position: fixed; left:0; top:0; bottom:0; width:220px;
+    background: var(--dark); border-right: 1px solid var(--border);
+    display:flex; flex-direction:column; padding: 24px 0; z-index:100;
+  }
+  .sidebar-brand {
+    padding: 0 20px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .sidebar-brand h2 { font-family:'Playfair Display',serif; font-size:18px; color:var(--gold); }
+  .sidebar-brand p { font-size:11px; color:var(--gray); margin-top:2px; }
+
+  .nav-item {
+    display:flex; align-items:center; gap:10px;
+    padding: 12px 20px; cursor:pointer; transition: background 0.15s;
+    font-size:14px; color: var(--gray); border-left: 2px solid transparent;
+  }
+  .nav-item:hover { background: rgba(201,168,76,0.05); color: var(--cream); }
+  .nav-item.active { color: var(--gold); border-left-color: var(--gold); background: var(--gold-dim); }
+  .nav-icon { font-size:16px; width:20px; text-align:center; }
+
+  .sidebar-footer {
+    margin-top:auto; padding: 16px 20px;
+    border-top: 1px solid var(--border);
+  }
+  .admin-info { font-size:12px; color:var(--gray); }
+  .btn-logout {
+    background:none; border:1px solid rgba(255,255,255,0.1);
+    color:var(--gray); padding:8px 14px; border-radius:6px;
+    font-size:12px; cursor:pointer; margin-top:8px; width:100%;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-logout:hover { border-color:var(--red); color:var(--red); }
+
+  .main-content {
+    margin-left: 220px; padding: 32px;
+    min-height: 100vh;
+  }
+
+  .page { display:none; }
+  .page.active { display:block; }
+
+  .page-title {
+    font-family:'Playfair Display',serif;
+    font-size:28px; color:var(--cream); margin-bottom:4px;
+  }
+  .page-subtitle { color:var(--gray); font-size:14px; margin-bottom:28px; }
+
+  /* ── STATS CARDS ── */
+  .stats-grid {
+    display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:32px;
+  }
+  .stat-card {
+    background:var(--dark); border:1px solid var(--border);
+    border-radius:14px; padding:20px;
+  }
+  .stat-card .s-label { font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:var(--gray); }
+  .stat-card .s-number {
+    font-family:'Playfair Display',serif; font-size:36px; color:var(--gold);
+    line-height:1; margin:8px 0 4px;
+  }
+  .stat-card .s-sub { font-size:12px; color:var(--gray); }
+
+  /* ── TABLE ── */
+  .table-wrap { background:var(--dark); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+  .table-header {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:20px 24px; border-bottom:1px solid var(--border);
+  }
+  .table-header h3 { font-size:15px; font-weight:500; }
+  .search-input {
+    background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+    color:var(--cream); padding:8px 14px; border-radius:8px;
+    font-family:'DM Sans',sans-serif; font-size:13px; outline:none; width:220px;
+    transition:border-color 0.2s;
+  }
+  .search-input:focus { border-color:var(--gold); }
+
+  table { width:100%; border-collapse:collapse; }
+  th {
+    text-align:left; padding:12px 24px;
+    font-size:11px; text-transform:uppercase; letter-spacing:1px;
+    color:var(--gray); background:rgba(255,255,255,0.02);
+    border-bottom:1px solid var(--border);
+  }
+  td { padding:14px 24px; border-bottom:1px solid rgba(255,255,255,0.04); font-size:14px; }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:rgba(255,255,255,0.02); }
+
+  .stamps-pill {
+    display:inline-flex; align-items:center; gap:6px;
+    background:var(--gold-dim); border:1px solid rgba(201,168,76,0.3);
+    color:var(--gold); padding:3px 10px; border-radius:20px; font-size:12px;
+  }
+
+  .btn-sm {
+    padding:6px 14px; border-radius:6px; font-size:12px;
+    font-family:'DM Sans',sans-serif; cursor:pointer; border:none;
+    font-weight:500; transition:all 0.2s;
+  }
+  .btn-stamp { background:var(--gold); color:var(--black); }
+  .btn-stamp:hover { background:var(--gold-light); }
+  .btn-view { background:rgba(255,255,255,0.06); color:var(--cream); margin-left:6px; }
+  .btn-view:hover { background:rgba(255,255,255,0.1); }
+  .btn-danger { background:rgba(192,57,43,0.1); color:var(--red); border:1px solid rgba(192,57,43,0.3); margin-left:6px; }
+  .btn-danger:hover { background:rgba(192,57,43,0.2); }
+
+  .badge-reward {
+    display:inline-block; background:rgba(39,174,96,0.1);
+    border:1px solid rgba(39,174,96,0.3); color:var(--green);
+    font-size:11px; padding:2px 8px; border-radius:20px; margin-left:8px;
+  }
+
+  /* ── STAMP SCANNER ── */
+  .scanner-wrap {
+    display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:32px;
+  }
+  .scanner-card {
+    background:var(--dark); border:1px solid var(--border); border-radius:14px; padding:28px;
+  }
+  .scanner-card h3 { font-size:15px; font-weight:500; margin-bottom:20px; }
+
+  .scan-input-row { display:flex; gap:10px; margin-bottom:16px; }
+  .scan-input {
+    flex:1; background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1);
+    color:var(--cream); padding:12px 14px; border-radius:8px;
+    font-family:'DM Sans',sans-serif; font-size:14px; outline:none;
+    transition:border-color 0.2s;
+  }
+  .scan-input:focus { border-color:var(--gold); }
+
+  .scan-result {
+    background:rgba(255,255,255,0.03); border:1px solid var(--border);
+    border-radius:10px; padding:16px; min-height:80px; font-size:14px; color:var(--gray);
+  }
+  .scan-result.success { border-color:rgba(39,174,96,0.4); background:rgba(39,174,96,0.05); color:var(--green); }
+  .scan-result.error { border-color:rgba(192,57,43,0.4); background:rgba(192,57,43,0.05); color:var(--red); }
+  .scan-result.reward { border-color:rgba(201,168,76,0.5); background:rgba(201,168,76,0.08); color:var(--gold); }
+
+  /* ── QR MODAL ── */
+  .modal-overlay {
+    display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,0.8); z-index:999;
+    align-items:center; justify-content:center;
+  }
+  .modal-overlay.open { display:flex; }
+  .modal {
+    background:var(--dark); border:1px solid var(--border);
+    border-radius:20px; padding:32px; text-align:center; max-width:380px; width:90%;
+  }
+  .modal h3 { font-family:'Playfair Display',serif; font-size:22px; color:var(--gold); margin-bottom:8px; }
+  .modal p { color:var(--gray); font-size:13px; margin-bottom:20px; }
+  .modal img { border-radius:12px; max-width:250px; background:white; padding:8px; }
+  .modal-close {
+    margin-top:20px; background:rgba(255,255,255,0.06);
+    border:none; color:var(--cream); padding:10px 24px;
+    border-radius:8px; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:14px;
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position:fixed; bottom:24px; right:24px;
+    background:var(--dark2); border:1px solid var(--border);
+    color:var(--cream); padding:14px 20px; border-radius:10px;
+    font-size:14px; z-index:9999; transform:translateY(100px);
+    transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1); max-width:320px;
+  }
+  .toast.show { transform:translateY(0); }
+  .toast.gold { border-color:rgba(201,168,76,0.5); }
+
+  .empty-state { padding:48px; text-align:center; color:var(--gray); }
+  .empty-state .es-icon { font-size:40px; margin-bottom:12px; }
+
+  @media (max-width:900px) {
+    .sidebar { display:none; }
+    .main-content { margin-left:0; padding:20px; }
+    .stats-grid { grid-template-columns:1fr 1fr; }
+    .scanner-wrap { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="logo">
+      <h1>✂ Admin</h1>
+      <p>Painel de gestão de fidelidade</p>
+    </div>
+    <div class="form-group">
+      <label>Utilizador</label>
+      <input type="text" id="l-user" value="admin" placeholder="admin">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="l-pass" value="admin123" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()">
+    </div>
+    <button class="btn-primary" onclick="login()">Entrar →</button>
+    <div class="login-error" id="login-error">Credenciais inválidas</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen">
+  <div class="sidebar">
+    <div class="sidebar-brand">
+      <h2>✂ Barbearia</h2>
+      <p>Sistema de Fidelidade</p>
+    </div>
+    <div class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard">
+      <span class="nav-icon">📊</span> Dashboard
+    </div>
+    <div class="nav-item" onclick="showPage('clients')" id="nav-clients">
+      <span class="nav-icon">👤</span> Clientes
+    </div>
+    <div class="nav-item" onclick="showPage('stamp')" id="nav-stamp">
+      <span class="nav-icon">✂</span> Dar Carimbo
+    </div>
+    <div class="sidebar-footer">
+      <div class="admin-info" id="admin-info">—</div>
+      <button class="btn-logout" onclick="logout()">Sair</button>
+    </div>
+  </div>
+
+  <div class="main-content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-title">Dashboard</div>
+      <div class="page-subtitle">Resumo do programa de fidelidade</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="s-label">Clientes</div>
+          <div class="s-number" id="stat-clients">—</div>
+          <div class="s-sub">registados</div>
+        </div>
+        <div class="stat-card">
+          <div class="s-label">Carimbos hoje</div>
+          <div class="s-number" id="stat-stamps-today">—</div>
+          <div class="s-sub">visitas hoje</div>
+        </div>
+        <div class="stat-card">
+          <div class="s-label">Recompensas</div>
+          <div class="s-number" id="stat-rewards-pending">—</div>
+          <div class="s-sub">por usar</div>
+        </div>
+        <div class="stat-card">
+          <div class="s-label">Total carimbos</div>
+          <div class="s-number" id="stat-stamps-total">—</div>
+          <div class="s-sub">desde sempre</div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>Clientes recentes</h3>
+        </div>
+        <table>
+          <thead><tr>
+            <th>Nome</th><th>Carimbos</th><th>Recompensas</th><th>Última visita</th>
+          </tr></thead>
+          <tbody id="recent-clients-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CLIENTS -->
+    <div class="page" id="page-clients">
+      <div class="page-title">Clientes</div>
+      <div class="page-subtitle">Todos os clientes registados</div>
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>Lista de clientes</h3>
+          <input class="search-input" id="client-search" placeholder="Pesquisar nome ou telemóvel..." oninput="filterClients()">
+        </div>
+        <table>
+          <thead><tr>
+            <th>Nome</th><th>Telemóvel</th><th>Carimbos</th><th>Recompensas</th><th>Registado</th><th>Ações</th>
+          </tr></thead>
+          <tbody id="clients-tbody"></tbody>
+        </table>
+        <div class="empty-state" id="clients-empty" style="display:none">
+          <div class="es-icon">👤</div>
+          <div>Nenhum cliente ainda</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STAMP -->
+    <div class="page" id="page-stamp">
+      <div class="page-title">Dar Carimbo</div>
+      <div class="page-subtitle">Adiciona um carimbo ao cartão do cliente</div>
+      <div class="scanner-wrap">
+        <div class="scanner-card">
+          <h3>🔍 Pesquisar cliente</h3>
+          <div class="scan-input-row">
+            <input class="scan-input" id="stamp-search" placeholder="Nome ou telemóvel..." oninput="searchForStamp()">
+          </div>
+          <div id="stamp-search-results" style="display:flex;flex-direction:column;gap:8px;"></div>
+        </div>
+        <div class="scanner-card">
+          <h3>✂ Resultado</h3>
+          <div class="scan-result" id="stamp-result">
+            Pesquisa um cliente à esquerda para dar carimbo.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- QR Modal -->
+<div class="modal-overlay" id="qr-modal">
+  <div class="modal">
+    <h3>Cartão Digital</h3>
+    <p id="qr-client-name">—</p>
+    <img id="qr-image" src="" alt="QR Code">
+    <br>
+    <small style="color:var(--gray);font-size:12px;" id="qr-link">—</small>
+    <br>
+    <button class="modal-close" onclick="closeQR()">Fechar</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';
+let token = localStorage.getItem('loy_token');
+let adminUser = JSON.parse(localStorage.getItem('loy_admin') || 'null');
+let allClients = [];
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+async function login() {
+  const username = document.getElementById('l-user').value;
+  const password = document.getElementById('l-pass').value;
+  try {
+    const res = await fetch(`${API}/api/auth/login`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({username, password})
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    token = data.token;
+    adminUser = data.admin;
+    localStorage.setItem('loy_token', token);
+    localStorage.setItem('loy_admin', JSON.stringify(adminUser));
+    initApp();
+  } catch(e) {
+    document.getElementById('login-error').style.display = 'block';
+  }
+}
+
+function logout() {
+  localStorage.removeItem('loy_token');
+  localStorage.removeItem('loy_admin');
+  token = null; adminUser = null;
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+function authHeaders() {
+  return { 'Content-Type':'application/json', 'Authorization': `Bearer ${token}` };
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+function initApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  document.getElementById('admin-info').textContent = adminUser?.name || adminUser?.username || 'Admin';
+  loadDashboard();
+  loadClients();
+}
+
+if (token && adminUser) initApp();
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const res = await fetch(`${API}/api/admin/stats`, { headers: authHeaders() });
+    const s = await res.json();
+    document.getElementById('stat-clients').textContent = s.totalClients;
+    document.getElementById('stat-stamps-today').textContent = s.stampsToday;
+    document.getElementById('stat-rewards-pending').textContent = s.rewardsPending;
+    document.getElementById('stat-stamps-total').textContent = s.totalStamps;
+  } catch(e) { console.error(e); }
+
+  // Recent clients
+  try {
+    const res = await fetch(`${API}/api/admin/clients`, { headers: authHeaders() });
+    const clients = await res.json();
+    const sorted = [...clients].sort((a,b) => new Date(b.lastVisit||b.createdAt) - new Date(a.lastVisit||a.createdAt)).slice(0,8);
+    const tbody = document.getElementById('recent-clients-tbody');
+    tbody.innerHTML = sorted.map(c => `
+      <tr>
+        <td>${c.name}</td>
+        <td><span class="stamps-pill">✂ ${c.currentStamps}/8</span></td>
+        <td>${c.totalRewards > 0 ? `<span class="badge-reward">🏆 ${c.totalRewards}</span>` : '—'}</td>
+        <td>${formatDate(c.lastVisit)}</td>
+      </tr>
+    `).join('');
+  } catch(e) { console.error(e); }
+}
+
+// ── CLIENTS ───────────────────────────────────────────────────────────────────
+async function loadClients() {
+  try {
+    const res = await fetch(`${API}/api/admin/clients`, { headers: authHeaders() });
+    allClients = await res.json();
+    renderClientsTable(allClients);
+  } catch(e) { console.error(e); }
+}
+
+function renderClientsTable(clients) {
+  const tbody = document.getElementById('clients-tbody');
+  const empty = document.getElementById('clients-empty');
+  if (clients.length === 0) {
+    tbody.innerHTML = ''; empty.style.display = 'block'; return;
+  }
+  empty.style.display = 'none';
+  tbody.innerHTML = clients.map(c => `
+    <tr>
+      <td>${c.name}</td>
+      <td>${c.phone}</td>
+      <td><span class="stamps-pill">✂ ${c.currentStamps}/8</span></td>
+      <td>${c.totalRewards > 0 ? `<span class="badge-reward">🏆 ${c.totalRewards}</span>` : '0'}</td>
+      <td>${formatDate(c.createdAt)}</td>
+      <td>
+        <button class="btn-sm btn-stamp" onclick="giveStamp('${c.id}','${c.name}')">Carimbo</button>
+        <button class="btn-sm btn-view" onclick="showQR('${c.id}','${c.name}')">QR</button>
+        <button class="btn-sm btn-danger" onclick="deleteClient('${c.id}','${c.name}')">✕</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterClients() {
+  const q = document.getElementById('client-search').value.toLowerCase();
+  const filtered = allClients.filter(c =>
+    c.name.toLowerCase().includes(q) || c.phone.includes(q)
+  );
+  renderClientsTable(filtered);
+}
+
+async function giveStamp(clientId, clientName) {
+  if (!confirm(`Dar carimbo a ${clientName}?`)) return;
+  try {
+    const res = await fetch(`${API}/api/admin/stamp`, {
+      method:'POST', headers: authHeaders(),
+      body: JSON.stringify({ clientId })
+    });
+    const data = await res.json();
+    if (data.reward) {
+      showToast(`🏆 ${clientName} ganhou Corte Grátis!`, true);
+    } else {
+      showToast(`✂ Carimbo dado a ${clientName} (${data.currentStamps}/8)`);
+    }
+    loadClients(); loadDashboard();
+  } catch(e) { showToast('Erro ao dar carimbo'); }
+}
+
+async function deleteClient(clientId, name) {
+  if (!confirm(`Apagar cliente "${name}"? Esta ação é irreversível.`)) return;
+  try {
+    await fetch(`${API}/api/admin/client/${clientId}`, { method:'DELETE', headers: authHeaders() });
+    showToast(`Cliente ${name} apagado`);
+    loadClients(); loadDashboard();
+  } catch(e) { showToast('Erro ao apagar'); }
+}
+
+// ── QR CODE ───────────────────────────────────────────────────────────────────
+async function showQR(clientId, name) {
+  try {
+    const res = await fetch(`${API}/api/admin/client/${clientId}/qr`, { headers: authHeaders() });
+    const data = await res.json();
+    document.getElementById('qr-client-name').textContent = name;
+    document.getElementById('qr-image').src = data.qrCode;
+    document.getElementById('qr-link').textContent = data.cardUrl;
+    document.getElementById('qr-modal').classList.add('open');
+  } catch(e) { showToast('Erro ao gerar QR'); }
+}
+
+function closeQR() {
+  document.getElementById('qr-modal').classList.remove('open');
+}
+
+// ── STAMP SEARCH ──────────────────────────────────────────────────────────────
+function searchForStamp() {
+  const q = document.getElementById('stamp-search').value.toLowerCase().trim();
+  const container = document.getElementById('stamp-search-results');
+  if (q.length < 2) { container.innerHTML = ''; return; }
+
+  const matches = allClients.filter(c =>
+    c.name.toLowerCase().includes(q) || c.phone.includes(q)
+  ).slice(0, 5);
+
+  if (matches.length === 0) {
+    container.innerHTML = '<div style="color:var(--gray);font-size:13px;">Nenhum cliente encontrado</div>';
+    return;
+  }
+
+  container.innerHTML = matches.map(c => `
+    <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:14px;">${c.name}</div>
+        <div style="font-size:12px;color:var(--gray);">${c.phone} · ✂ ${c.currentStamps}/8</div>
+      </div>
+      <button class="btn-sm btn-stamp" onclick="stampFromSearch('${c.id}','${c.name}')">Carimbo</button>
+    </div>
+  `).join('');
+}
+
+async function stampFromSearch(clientId, name) {
+  const resultEl = document.getElementById('stamp-result');
+  resultEl.className = 'scan-result';
+  resultEl.textContent = 'A processar...';
+  try {
+    const res = await fetch(`${API}/api/admin/stamp`, {
+      method:'POST', headers: authHeaders(),
+      body: JSON.stringify({ clientId })
+    });
+    const data = await res.json();
+    if (data.reward) {
+      resultEl.className = 'scan-result reward';
+      resultEl.innerHTML = `🏆 <strong>${name}</strong> ganhou um <strong>Corte Grátis!</strong><br><br>Recompensa desbloqueada após 8 carimbos.`;
+    } else {
+      resultEl.className = 'scan-result success';
+      resultEl.innerHTML = `✅ Carimbo dado a <strong>${name}</strong><br><br>Carimbos actuais: <strong>${data.currentStamps}/8</strong><br>Faltam ${8 - data.currentStamps} para corte grátis.`;
+    }
+    loadClients(); loadDashboard();
+    document.getElementById('stamp-search').value = '';
+    document.getElementById('stamp-search-results').innerHTML = '';
+  } catch(e) {
+    resultEl.className = 'scan-result error';
+    resultEl.textContent = '❌ Erro ao adicionar carimbo.';
+  }
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function formatDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('pt-PT', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+let toastTimer;
+function showToast(msg, gold=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (gold ? ' gold' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = 'toast'; }, 3000);
+}
+
+// Close modal on overlay click
+document.getElementById('qr-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeQR();
+});
+</script>
+</body>
+</html>

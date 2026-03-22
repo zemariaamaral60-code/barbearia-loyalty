@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cartão de Fidelidade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --cream: #f5f0e8;
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --red: #8b1a1a;
+    --white: #ffffff;
+    --gray: #888;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--black);
+    color: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 16px 40px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at 60% 20%, rgba(201,168,76,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 20% 80%, rgba(139,26,26,0.06) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { position: relative; z-index: 1; width: 100%; max-width: 400px; }
+
+  /* ── LOADING ── */
+  #loading {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; min-height: 80vh; gap: 16px;
+  }
+  .spinner {
+    width: 40px; height: 40px;
+    border: 2px solid rgba(201,168,76,0.2);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── REGISTER FORM ── */
+  #register-form {
+    display: none; flex-direction: column; gap: 24px;
+    min-height: 80vh; justify-content: center;
+  }
+  .brand-header { text-align: center; margin-bottom: 8px; }
+  .brand-header .scissors { font-size: 48px; margin-bottom: 8px; }
+  .brand-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px; font-weight: 900; color: var(--gold);
+    letter-spacing: -0.5px; line-height: 1.1;
+  }
+  .brand-header p { color: var(--gray); font-size: 14px; margin-top: 6px; }
+
+  .form-group { display: flex; flex-direction: column; gap: 8px; }
+  .form-group label { font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--gold); font-weight: 500; }
+  .form-group input {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.25);
+    color: var(--cream);
+    padding: 14px 16px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-group input:focus { border-color: var(--gold); }
+  .form-group input::placeholder { color: #555; }
+
+  .btn-register {
+    background: var(--gold);
+    color: var(--black);
+    border: none;
+    padding: 16px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .btn-register:hover { background: var(--gold-light); }
+  .btn-register:active { transform: scale(0.98); }
+
+  /* ── CARD ── */
+  #card-view { display: none; flex-direction: column; gap: 20px; }
+
+  .card {
+    background: linear-gradient(135deg, #1a1510 0%, #0f0d0a 100%);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 20px;
+    padding: 28px 24px;
+    position: relative;
+    overflow: hidden;
+    animation: cardIn 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards;
+  }
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(30px) scale(0.95); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .card::before {
+    content: '✂';
+    position: absolute;
+    right: -10px; top: -10px;
+    font-size: 140px;
+    opacity: 0.03;
+    transform: rotate(-20deg);
+  }
+
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+  .card-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px; font-weight: 900; color: var(--gold);
+  }
+  .card-badge {
+    background: rgba(201,168,76,0.12);
+    border: 1px solid rgba(201,168,76,0.3);
+    color: var(--gold);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  .client-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px; font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--cream);
+  }
+  .client-since { font-size: 12px; color: var(--gray); letter-spacing: 0.5px; }
+
+  .divider {
+    border: none;
+    border-top: 1px solid rgba(201,168,76,0.1);
+    margin: 20px 0;
+  }
+
+  .stamps-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--gold); font-weight: 500; margin-bottom: 14px;
+  }
+
+  .stamps-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+  }
+
+  .stamp {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    border: 1.5px solid rgba(201,168,76,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    position: relative;
+    transition: all 0.3s;
+  }
+  .stamp.filled {
+    background: rgba(201,168,76,0.12);
+    border-color: var(--gold);
+    animation: stampIn 0.4s cubic-bezier(0.34,1.56,0.64,1) backwards;
+  }
+  .stamp.empty { background: rgba(255,255,255,0.02); }
+  .stamp.empty::after {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba(201,168,76,0.15);
+  }
+  @keyframes stampIn {
+    from { transform: scale(0.5) rotate(-10deg); opacity: 0; }
+    to   { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+
+  .progress-bar-wrap { margin-top: 16px; }
+  .progress-bar-track {
+    height: 4px; background: rgba(255,255,255,0.06);
+    border-radius: 4px; overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    border-radius: 4px; transition: width 1s cubic-bezier(0.4,0,0.2,1);
+  }
+  .progress-text {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--gray); margin-top: 8px;
+  }
+  .progress-text strong { color: var(--gold); }
+
+  /* ── REWARD BANNER ── */
+  .reward-banner {
+    background: linear-gradient(135deg, #3d1f00, #1a0d00);
+    border: 1px solid rgba(201,168,76,0.5);
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0.2); }
+    50% { box-shadow: 0 0 0 12px rgba(201,168,76,0); }
+  }
+  .reward-banner .trophy { font-size: 36px; margin-bottom: 8px; }
+  .reward-banner h3 {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold); font-size: 20px; margin-bottom: 6px;
+  }
+  .reward-banner p { color: var(--cream); font-size: 14px; opacity: 0.8; }
+
+  /* ── STATS ── */
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .stat-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(201,168,76,0.1);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+  .stat-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px; font-weight: 900; color: var(--gold);
+  }
+  .stat-label { font-size: 11px; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+  /* ── HISTORY ── */
+  .section-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--gold); font-weight: 500; margin-bottom: 12px;
+  }
+  .history-list { display: flex; flex-direction: column; gap: 8px; }
+  .history-item {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .history-item .hi-left { display: flex; align-items: center; gap: 10px; }
+  .history-item .hi-icon { font-size: 18px; }
+  .history-item .hi-label { font-size: 14px; color: var(--cream); }
+  .history-item .hi-date { font-size: 12px; color: var(--gray); }
+
+  /* ── ERROR ── */
+  #error-view {
+    display: none; flex-direction: column; align-items: center;
+    justify-content: center; min-height: 80vh; text-align: center; gap: 16px;
+  }
+  #error-view h2 { font-family: 'Playfair Display', serif; color: var(--red); font-size: 24px; }
+  #error-view p { color: var(--gray); font-size: 14px; }
+
+  .footer { text-align: center; font-size: 11px; color: #333; margin-top: 8px; padding-bottom: 20px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Loading -->
+  <div id="loading">
+    <div class="spinner"></div>
+    <span style="color:var(--gray);font-size:13px;">A carregar cartão...</span>
+  </div>
+
+  <!-- Register Form -->
+  <div id="register-form">
+    <div class="brand-header">
+      <div class="scissors">✂️</div>
+      <h1>Cartão de Fidelidade</h1>
+      <p>Regista-te para começar a ganhar carimbos</p>
+    </div>
+    <div class="form-group">
+      <label>Nome completo</label>
+      <input type="text" id="reg-name" placeholder="O teu nome" autocomplete="name">
+    </div>
+    <div class="form-group">
+      <label>Telemóvel</label>
+      <input type="tel" id="reg-phone" placeholder="+351 9XX XXX XXX" autocomplete="tel">
+    </div>
+    <button class="btn-register" onclick="register()">Criar o meu cartão →</button>
+  </div>
+
+  <!-- Card View -->
+  <div id="card-view">
+
+    <div class="card" id="main-card">
+      <div class="card-top">
+        <div class="card-brand">✂ Barbearia</div>
+        <div class="card-badge">Fidelidade</div>
+      </div>
+      <div class="client-name" id="client-name">—</div>
+      <div class="client-since" id="client-since">—</div>
+      <hr class="divider">
+      <div class="stamps-label">Carimbos — 8 para corte grátis</div>
+      <div class="stamps-grid" id="stamps-grid"></div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+        </div>
+        <div class="progress-text">
+          <span id="stamps-count">0 / 8 carimbos</span>
+          <strong id="stamps-left">8 em falta</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reward Banner (hidden by default) -->
+    <div class="reward-banner" id="reward-banner" style="display:none">
+      <div class="trophy">🏆</div>
+      <h3>Corte Grátis!</h3>
+      <p>Tens <strong id="reward-count">1</strong> recompensa por usar. Mostra ao barbeiro!</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-number" id="stat-total">0</div>
+        <div class="stat-label">Visitas totais</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="stat-rewards">0</div>
+        <div class="stat-label">Cortes grátis</div>
+      </div>
+    </div>
+
+    <!-- Recent history -->
+    <div>
+      <div class="section-title">Últimas visitas</div>
+      <div class="history-list" id="history-list"></div>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div id="error-view">
+    <h2>✂ Ops!</h2>
+    <p id="error-msg">Cartão não encontrado.</p>
+  </div>
+
+</div>
+
+<div class="footer">✂ Sistema de fidelidade digital</div>
+
+<script>
+const API = '';  // same origin
+
+function getClientId() {
+  const parts = window.location.pathname.split('/');
+  return parts[parts.length - 1];
+}
+
+function showView(id) {
+  ['loading','register-form','card-view','error-view'].forEach(v => {
+    const el = document.getElementById(v);
+    el.style.display = (v === id) ? (id === 'card-view' || id === 'register-form' ? 'flex' : 'flex') : 'none';
+  });
+}
+
+function formatDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('pt-PT', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+async function loadCard(clientId) {
+  try {
+    const res = await fetch(`${API}/api/card/${clientId}`);
+    if (!res.ok) throw new Error('not found');
+    const data = await res.json();
+    renderCard(data);
+    showView('card-view');
+  } catch {
+    // Not registered yet — show form
+    localStorage.setItem('pendingClientId', ''); // clear
+    showView('register-form');
+  }
+}
+
+function renderCard(data) {
+  const { client, currentStamps, stampsNeeded, totalRewards, stamps } = data;
+  const totalStamps = stamps.length;
+
+  document.getElementById('client-name').textContent = client.name;
+  document.getElementById('client-since').textContent = 'Cliente desde ' + formatDate(client.createdAt);
+
+  // Stamps grid
+  const grid = document.getElementById('stamps-grid');
+  grid.innerHTML = '';
+  for (let i = 0; i < stampsNeeded; i++) {
+    const div = document.createElement('div');
+    div.className = 'stamp ' + (i < currentStamps ? 'filled' : 'empty');
+    if (i < currentStamps) {
+      div.textContent = '✂';
+      div.style.animationDelay = (i * 0.06) + 's';
+    }
+    grid.appendChild(div);
+  }
+
+  // Progress
+  const pct = (currentStamps / stampsNeeded * 100).toFixed(0);
+  setTimeout(() => {
+    document.getElementById('progress-fill').style.width = pct + '%';
+  }, 300);
+  document.getElementById('stamps-count').textContent = `${currentStamps} / ${stampsNeeded} carimbos`;
+  const left = stampsNeeded - currentStamps;
+  document.getElementById('stamps-left').textContent = left === 0 ? '🎉 Recompensa!' : `${left} em falta`;
+
+  // Reward banner
+  const pendingRewards = data.rewards ? data.rewards.filter(r => !r.used).length : 0;
+  if (pendingRewards > 0) {
+    document.getElementById('reward-banner').style.display = 'block';
+    document.getElementById('reward-count').textContent = pendingRewards;
+  }
+
+  // Stats
+  document.getElementById('stat-total').textContent = totalStamps;
+  document.getElementById('stat-rewards').textContent = totalRewards;
+
+  // History
+  const list = document.getElementById('history-list');
+  list.innerHTML = '';
+  const recent = [...stamps].reverse().slice(0, 5);
+  if (recent.length === 0) {
+    list.innerHTML = '<div style="color:var(--gray);font-size:13px;text-align:center;padding:16px;">Ainda sem visitas</div>';
+  } else {
+    recent.forEach(s => {
+      const div = document.createElement('div');
+      div.className = 'history-item';
+      div.innerHTML = `
+        <div class="hi-left">
+          <span class="hi-icon">✂</span>
+          <span class="hi-label">Visita</span>
+        </div>
+        <span class="hi-date">${formatDate(s.createdAt)}</span>
+      `;
+      list.appendChild(div);
+    });
+  }
+}
+
+async function register() {
+  const name = document.getElementById('reg-name').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+  if (!name || !phone) { alert('Por favor preenche todos os campos.'); return; }
+
+  try {
+    const res = await fetch(`${API}/api/clients/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, phone })
+    });
+    const data = await res.json();
+    if (data.client) {
+      window.history.replaceState({}, '', `/card/${data.client.id}`);
+      const cardRes = await fetch(`${API}/api/card/${data.client.id}`);
+      const cardData = await cardRes.json();
+      renderCard(cardData);
+      showView('card-view');
+    }
+  } catch(e) {
+    alert('Erro ao registar. Tenta novamente.');
+  }
+}
+
+// Init
+const clientId = getClientId();
+if (clientId && clientId !== 'card') {
+  loadCard(clientId);
+} else {
+  showView('register-form');
+}
+</script>
+</body>
+</html>

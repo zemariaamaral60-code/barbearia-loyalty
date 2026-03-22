@@ -1,0 +1,14 @@
+{
+  "admins": [
+    {
+      "id": "63c1cadd-753c-4467-b66b-b3ed64bb9fe0",
+      "username": "admin",
+      "password": "$2b$10$CIKYeMBoMyoSVQD.ojz1aerq/OHa1lo0QFs4CMg8Y0E/7XzX9id5O",
+      "name": "Administrador",
+      "createdAt": "2026-03-22T22:39:57.354Z"
+    }
+  ],
+  "clients": [],
+  "stamps": [],
+  "rewards": []
+}
